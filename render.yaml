@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: github-copilot-extension
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: GITHUB_APP_ID
+        value: 296350
+      - key: GITHUB_CLIENT_ID  
+        value: Iv23LiLyX9GjWKiXw4
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_PRIVATE_KEY_PATH
+        value: ./private-key.pem

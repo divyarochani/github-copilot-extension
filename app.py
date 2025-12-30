@@ -212,4 +212,7 @@ if __name__ == '__main__':
     if not GITHUB_TOKEN and not GITHUB_APP_ID:
         print("Warning: No GitHub authentication configured")
         print("Set either GITHUB_TOKEN or GitHub App credentials")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    
+    # Get port from environment (Render uses PORT env var)
+    port = int(os.getenv('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)

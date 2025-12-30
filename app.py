@@ -4,6 +4,10 @@ import os
 import jwt
 import time
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -76,6 +80,19 @@ class GitHubAPI:
         return response.json() if response.status_code == 200 else None
 
 github_api = GitHubAPI()
+
+@app.route('/', methods=['GET'])
+def home():
+    """Home endpoint"""
+    return jsonify({
+        'message': 'GitHub Copilot Extension Backend',
+        'status': 'running',
+        'endpoints': {
+            'POST /copilot/chat': 'Main chat endpoint',
+            'GET /health': 'Health check'
+        },
+        'timestamp': datetime.now().isoformat()
+    })
 
 @app.route('/copilot/chat', methods=['POST'])
 def copilot_chat():

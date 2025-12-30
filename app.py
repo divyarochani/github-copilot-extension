@@ -1,21 +1,60 @@
 from flask import Flask, request, jsonify
 import requests
 import os
+import jwt
+import time
 from datetime import datetime
 
 app = Flask(__name__)
 
-# GitHub API configuration
+# GitHub App configuration
+GITHUB_APP_ID = os.getenv('GITHUB_APP_ID')
+GITHUB_CLIENT_ID = os.getenv('GITHUB_CLIENT_ID')
+GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET')
+GITHUB_PRIVATE_KEY_PATH = os.getenv('GITHUB_PRIVATE_KEY_PATH')
+
+# Fallback to personal access token for testing
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 GITHUB_API_BASE = 'https://api.github.com'
 
 class GitHubAPI:
-    def __init__(self, token):
-        self.token = token
-        self.headers = {
-            'Authorization': f'token {token}',
-            'Accept': 'application/vnd.github.v3+json'
-        }
+    def __init__(self):
+        self.headers = self._get_headers()
+    
+    def _get_headers(self):
+        """Get authentication headers"""
+        if GITHUB_TOKEN:
+            # Use personal access token for testing
+            return {
+                'Authorization': f'token {GITHUB_TOKEN}',
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        elif GITHUB_APP_ID and GITHUB_PRIVATE_KEY_PATH:
+            # Use GitHub App authentication
+            token = self._generate_jwt_token()
+            return {
+                'Authorization': f'Bearer {token}',
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        else:
+            return {'Accept': 'application/vnd.github.v3+json'}
+    
+    def _generate_jwt_token(self):
+        """Generate JWT token for GitHub App"""
+        try:
+            with open(GITHUB_PRIVATE_KEY_PATH, 'r') as key_file:
+                private_key = key_file.read()
+            
+            payload = {
+                'iat': int(time.time()),
+                'exp': int(time.time()) + 600,  # 10 minutes
+                'iss': GITHUB_APP_ID
+            }
+            
+            return jwt.encode(payload, private_key, algorithm='RS256')
+        except Exception as e:
+            print(f"Error generating JWT: {e}")
+            return None
     
     def get_user_info(self, username):
         """Get GitHub user information"""
@@ -36,7 +75,7 @@ class GitHubAPI:
         response = requests.get(url, headers=self.headers, params=params)
         return response.json() if response.status_code == 200 else None
 
-github_api = GitHubAPI(GITHUB_TOKEN)
+github_api = GitHubAPI()
 
 @app.route('/copilot/chat', methods=['POST'])
 def copilot_chat():
@@ -170,6 +209,7 @@ def health_check():
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
 
 if __name__ == '__main__':
-    if not GITHUB_TOKEN:
-        print("Warning: GITHUB_TOKEN environment variable not set")
+    if not GITHUB_TOKEN and not GITHUB_APP_ID:
+        print("Warning: No GitHub authentication configured")
+        print("Set either GITHUB_TOKEN or GitHub App credentials")
     app.run(debug=True, host='0.0.0.0', port=5000)

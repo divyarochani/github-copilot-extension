@@ -13,6 +13,10 @@ venv.bak/
 # Environment variables
 .env
 
+# Private keys
+*.pem
+private-key.pem
+
 # Flask
 instance/
 .webassets-cache

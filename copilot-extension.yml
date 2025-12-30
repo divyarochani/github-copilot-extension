@@ -1,0 +1,19 @@
+api_version: v1
+publisher: divyarochani
+name: github-assistant
+display_name: GitHub Assistant
+description: GitHub repository and user information assistant
+categories:
+  - productivity
+  - developer-tools
+pricing: free
+supported_tools:
+  - chat
+chat:
+  url: https://github-copilot-extension-production.up.railway.app/copilot/chat
+  supports_references: true
+  supports_code_interpreter: false
+logo: https://github.com/divyarochani/github-copilot-extension/raw/main/logo.png
+homepage_url: https://github.com/divyarochani/github-copilot-extension
+privacy_policy_url: https://github.com/divyarochani/github-copilot-extension/blob/main/PRIVACY.md
+terms_of_service_url: https://github.com/divyarochani/github-copilot-extension/blob/main/TERMS.md

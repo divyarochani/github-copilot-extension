@@ -99,7 +99,16 @@ def copilot_chat():
     """Handle Copilot chat requests"""
     try:
         data = request.json
-        message = data.get('message', '').lower()
+        
+        # Handle both direct message and Copilot format
+        if 'messages' in data:
+            # GitHub Copilot format
+            messages = data['messages']
+            last_message = messages[-1]['content'] if messages else ''
+            message = last_message.lower()
+        else:
+            # Direct format
+            message = data.get('message', '').lower()
         
         # Simple command parsing
         if 'user' in message and 'info' in message:
@@ -139,13 +148,30 @@ def copilot_chat():
         else:
             response = get_help_message()
         
+        # Return in GitHub Copilot expected format
         return jsonify({
-            'response': response,
-            'timestamp': datetime.now().isoformat()
+            'choices': [{
+                'message': {
+                    'role': 'assistant',
+                    'content': response
+                }
+            }],
+            'usage': {
+                'prompt_tokens': len(message.split()),
+                'completion_tokens': len(response.split()),
+                'total_tokens': len(message.split()) + len(response.split())
+            }
         })
     
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({
+            'choices': [{
+                'message': {
+                    'role': 'assistant', 
+                    'content': f'Sorry, I encountered an error: {str(e)}'
+                }
+            }]
+        }), 500
 
 def extract_username(message):
     """Extract username from message"""
